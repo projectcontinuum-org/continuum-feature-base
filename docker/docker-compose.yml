@@ -236,7 +236,7 @@ services:
   # Continuum Platform Services
   # ========================================
   continuum-api-server:
-    image: ghcr.io/roushan65/continuum/continuum-api-server:0.0.1
+    image: ghcr.io/projectcontinuum/continuum/continuum-api-server:0.0.1
     container_name: continuum-api-server
     ports:
       - "8080:8080"
@@ -258,13 +258,14 @@ services:
     restart: unless-stopped
 
   continuum-message-bridge:
-    image: ghcr.io/roushan65/continuum/continuum-message-bridge:0.0.1
+    image: ghcr.io/projectcontinuum/continuum/continuum-message-bridge:0.0.1
     container_name: continuum-message-bridge
     ports:
-      - "8081:8080"
+      - "8082:8080"
     environment:
       CONTINUUM_KAFKA_MAIN_BROKER_LIST: kafka1:19092,kafka2:19092,kafka3:19092
       CONTINUUM_KAFKA_MAIN_SCHEMA_REGISTRY: http://schema-registry:8080
+      JAVA_TOOL_OPTIONS: -Dcontinuum.core.bridge.mqtt.server-uri=tcp://mosquitto:1883
     depends_on:
       - kafka1
       - kafka2
