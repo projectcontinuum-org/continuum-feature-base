@@ -1,327 +1,142 @@
-# Continuum Feature Template
+<div align="center">
+  <h1>Continuum Feature Base</h1>
+  <strong>Core analytics and data processing nodes for <a href="https://github.com/projectcontinuum/Continuum">Project Continuum</a></strong>
+</div>
 
-A template repository for building custom [Continuum](https://github.com/roushan65/Continuum) workflow nodes. Create your own feature modules with processing nodes that plug into the Continuum distributed workflow execution platform.
-
----
-
-## Overview
-
-**Continuum** is a distributed workflow execution platform built on [Temporal](https://temporal.io/), [Apache Kafka](https://kafka.apache.org/), and [Spring Boot](https://spring.io/projects/spring-boot). It lets you design and run data processing workflows as directed acyclic graphs (DAGs), where each node in the graph performs a specific operation on tabular data (stored as [Apache Parquet](https://parquet.apache.org/) files in S3/MinIO).
-
-This template provides a standalone repository for creating **custom Continuum nodes** without needing the full Continuum monorepo. It contains:
-
-- **Feature module** (`features/continuum-feature-template/`) — A library that implements one or more workflow nodes. Each node extends `ProcessNodeModel` from `continuum-commons`, defines input/output ports, configuration properties (JSON Schema), and an `execute()` method that processes data.
-
-- **Worker module** (`worker/`) — A Spring Boot application that bundles your feature module(s) with the `continuum-worker-springboot-starter` framework. The worker registers your nodes with Temporal and handles the full execution lifecycle: downloading inputs from S3, running your node logic, uploading outputs, and reporting progress via Kafka.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  Your Repository                                        │
-│                                                         │
-│  features/continuum-feature-template/                   │
-│  └── ColumnJoinerNodeModel  ←  Your custom nodes        │
-│                                                         │
-│  worker/                                                │
-│  └── Spring Boot App  ←  Runs your nodes                │
-│       ├── continuum-worker-springboot-starter (framework)│
-│       └── your feature module(s)                        │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┐
-        ▼            ▼            ▼
-   ┌─────────┐ ┌─────────┐ ┌──────────┐
-   │ Temporal │ │  Kafka  │ │ MinIO/S3 │
-   │ (orch.) │ │ (events)│ │ (storage)│
-   └─────────┘ └─────────┘ └──────────┘
-```
-
-**One repo = one worker, many feature modules.** You can add multiple feature modules under `features/` and the single worker will load all of them.
+<div align="center">
+  <img src="https://img.shields.io/badge/Kotlin-2.1.0-blue?logo=kotlin&logoColor=white" alt="Kotlin">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.4-green?logo=springboot&logoColor=white" alt="Spring Boot">
+  <img src="https://img.shields.io/badge/Nodes-16-orange" alt="16 Nodes">
+  <img src="https://img.shields.io/badge/JDK-21-red" alt="JDK 21">
+</div>
 
 ---
 
-## Prerequisites
+## 🌐 Part of Project Continuum
+
+This is the **base analytics feature repository** for [Project Continuum](https://github.com/projectcontinuum/Continuum) — a distributed, crash-proof workflow execution platform. It provides the foundational set of data processing nodes used in most workflows.
+
+---
+
+## 🔥 What Is This
+
+A standalone Gradle project containing **16 production-ready workflow nodes** for data transformation, filtering, aggregation, REST integration, scripting, and anomaly detection. Ships as a Spring Boot worker that registers all nodes with Temporal for durable execution.
+
+---
+
+## 🧩 Included Nodes
+
+| Category | Node | Description |
+|----------|------|-------------|
+| **Data** | Create Table | Creates a structured table from FreeMarker template configuration |
+| **Data** | Column Join | Joins two columns from left and right tables into one output column |
+| **Data** | Joint Node | Joins input strings into one |
+| **Data** | Join on Multiple Keys | Performs inner join on two tables using two key columns from each table |
+| **Transform** | Pivot Columns | Pivots table so pivot column values become new columns with value column as cell values |
+| **Transform** | JSON Exploder | Parses JSON strings and flattens keys into new columns |
+| **Transform** | Column Splitter | Splits a column into two parts |
+| **Transform** | Kotlin Script | Runs a Kotlin script for each row, adding a script_result column |
+| **Filter** | Dynamic Row Filter | Filters rows where the specified column value is greater than the threshold |
+| **Filter** | Conditional Splitter | Splits rows into two outputs based on threshold comparison |
+| **Aggregation** | Time Window Aggregator | Aggregates values into time windows, summing by window buckets |
+| **Aggregation** | Batch Accumulator | Groups rows into batches and adds batch_id and row_count columns |
+| **Text** | Text Normalizer | Normalizes text by trimming, lowercasing, and removing non-alphanumeric characters |
+| **Security** | Crypto Hasher | Generates SHA-256 hash of column values |
+| **Analytics** | Anomaly Detector (Z-Score) | Detects outliers using Z-score method (flags values with \|Z\| > 2) |
+| **Integration** | REST Client | Makes HTTP requests for each row using FreeMarker templated URLs and payloads |
+
+---
+
+## 📦 Dependencies
+
+This worker depends on shared libraries published from the [Continuum](https://github.com/projectcontinuum/Continuum) monorepo via GitHub Packages:
+
+| Dependency | Purpose |
+|-----------|---------|
+| `continuum-commons:0.0.1` | Base node model, data types, Parquet/S3 utilities |
+| `continuum-avro-schemas:0.0.1` | Shared Kafka message schemas |
+| `continuum-worker-springboot-starter:0.0.1` | Worker framework — registers nodes with Temporal |
+
+Additional infrastructure libraries: Kafka + Confluent Avro, Temporal SDK, AWS SDK (S3), MQTT Paho, FreeMarker, Kotlin Scripting.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - **JDK 21** — [Eclipse Temurin](https://adoptium.net/) recommended
-- **Docker & Docker Compose** — For running local infrastructure (Temporal, Kafka, MinIO)
-- **GitHub Account** — With a Personal Access Token (PAT) that has `read:packages` scope, needed to download `continuum-commons` and `continuum-worker-springboot-starter` from GitHub Packages
-- **IDE** — IntelliJ IDEA recommended for Kotlin/Gradle projects
+- **Docker & Docker Compose** — For local infrastructure
+- **GitHub PAT** with `read:packages` scope
 
----
-
-## Getting Started
-
-### 1. Create Your Repository
-
-Click **"Use this template"** on GitHub to create a new repository from this template, or fork it.
-
-### 2. Clone and Rename
+Set environment variables:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/continuum-feature-template.git
-cd continuum-feature-template
-```
-
-Rename the project from `template` to your feature name (e.g., `myfeature`). Update these files:
-
-| File | What to change |
-|------|---------------|
-| `settings.gradle.kts` | Module name: `:features:continuum-feature-template` → `:features:continuum-feature-myfeature` |
-| `features/` directory | Rename `continuum-feature-template/` → `continuum-feature-myfeature/` |
-| `features/.../build.gradle.kts` | `group = "com.continuum.feature.myfeature"` |
-| `worker/build.gradle.kts` | Update `project(":features:continuum-feature-myfeature")` and group |
-| `AutoConfigure.kt` | Package: `com.continuum.feature.myfeature`, basePackages |
-| `AutoConfiguration.imports` | `com.continuum.feature.myfeature.AutoConfigure` |
-| `App.kt` | Package: `com.continuum.app.worker.myfeature` |
-| `application.yaml` | `spring.application.name` and logging packages |
-| Source directories | Rename `template` → `myfeature` in all directory paths |
-
-### 3. Set Environment Variables
-
-GitHub Packages requires authentication even for reading public packages:
-
-```bash
-export GITHUB_USER=your-github-username
+export GITHUB_USERNAME=your-github-username
 export GITHUB_TOKEN=ghp_your-personal-access-token
 ```
 
-> **Tip:** Add these to your `~/.zshrc` or `~/.bashrc` so they persist across sessions.
-
-### 4. Update `gradle.properties`
-
-Set `repoName` to your GitHub repository (used for publishing):
-
-```properties
-sourceRepoName=roushan65/Continuum
-repoName=YOUR_USERNAME/continuum-feature-myfeature
-```
-
-### 5. Start Local Infrastructure
+### Run
 
 ```bash
-cd docker
-docker compose up -d
-```
+# Start infrastructure (Temporal, Kafka, MinIO, API Server, Message Bridge)
+cd docker && docker compose up -d
 
-This starts Temporal, Kafka (3-node cluster), MinIO, Mosquitto, the Continuum API server, and the Continuum message bridge. Wait ~30 seconds for all services to initialize.
-
-### 6. Build the Project
-
-```bash
+# Build
 ./gradlew build
-```
 
-### 7. Run the Worker
-
-```bash
+# Start the base analytics worker
 ./gradlew :worker:bootRun
 ```
 
-Your worker is now running and your custom nodes are registered with Temporal, ready to execute workflows.
+Your worker is now running and all 16 nodes are registered with Temporal.
 
 ---
 
-## Creating Your Own Node
-
-The template includes an example node (`ColumnJoinerNodeModel`) that demonstrates all the key patterns. Here's how to create your own:
-
-### 1. Create a New Class
-
-Create a new Kotlin file under `features/continuum-feature-template/src/main/kotlin/com/continuum/feature/template/node/`:
-
-```kotlin
-@Component
-class MyNodeModel : ProcessNodeModel() {
-    // ...
-}
-```
-
-### 2. Define Input and Output Ports
-
-```kotlin
-final override val inputPorts = mapOf(
-    "input" to ContinuumWorkflowModel.NodePort(
-        name = "input table",
-        contentType = APPLICATION_OCTET_STREAM_VALUE
-    )
-)
-
-final override val outputPorts = mapOf(
-    "output" to ContinuumWorkflowModel.NodePort(
-        name = "output table",
-        contentType = APPLICATION_OCTET_STREAM_VALUE
-    )
-)
-```
-
-### 3. Define Configuration Properties (JSON Schema)
-
-```kotlin
-val propertiesSchema: Map<String, Any> = objectMapper.readValue("""
-    {
-      "type": "object",
-      "properties": {
-        "myParam": {
-          "type": "string",
-          "title": "My Parameter",
-          "description": "Description of what this does"
-        }
-      },
-      "required": ["myParam"]
-    }
-""".trimIndent(), object : TypeReference<Map<String, Any>>() {})
-```
-
-### 4. Define Metadata
-
-```kotlin
-override val metadata = ContinuumWorkflowModel.NodeData(
-    id = this.javaClass.name,
-    title = "My Node",
-    description = "What this node does",
-    subTitle = "Short subtitle",
-    nodeModel = this.javaClass.name,
-    icon = """<svg>...</svg>""",
-    inputs = inputPorts,
-    outputs = outputPorts,
-    properties = mapOf("myParam" to "defaultValue"),
-    propertiesSchema = propertiesSchema,
-    propertiesUISchema = propertiesUiSchema
-)
-```
-
-### 5. Implement the Execute Method
-
-```kotlin
-override fun execute(
-    properties: Map<String, Any>?,
-    inputs: Map<String, NodeInputReader>,
-    nodeOutputWriter: NodeOutputWriter,
-    nodeProgressCallback: NodeProgressCallback
-) {
-    val myParam = properties?.get("myParam") as String?
-        ?: throw NodeRuntimeException(workflowId = "", nodeId = "", message = "myParam is required")
-
-    val inputReader = inputs["input"]!!
-    val totalRows = inputReader.getRowCount()
-
-    nodeOutputWriter.createOutputPortWriter("output").use { writer ->
-        inputReader.use { reader ->
-            var row = reader.read()
-            var rowNumber = 0L
-
-            while (row != null) {
-                // Your processing logic here
-                val outputRow = row.toMutableMap<String, Any>()
-                writer.write(rowNumber, outputRow)
-
-                rowNumber++
-                if (totalRows > 0) {
-                    nodeProgressCallback.report((rowNumber * 100 / totalRows).toInt())
-                }
-                row = reader.read()
-            }
-        }
-    }
-    nodeProgressCallback.report(100)
-}
-```
-
-### 6. Add Documentation
-
-Create `MyNodeModel.doc.md` in the resources directory matching your package path:
-```
-src/main/resources/com/continuum/feature/template/node/MyNodeModel.doc.md
-```
-
-This file is auto-loaded by `ProcessNodeModel` and displayed in the workflow editor.
-
----
-
-## Adding More Feature Modules
-
-To add another set of nodes, create a new module under `features/`:
-
-1. Create the directory: `features/continuum-feature-another/`
-2. Add a `build.gradle.kts` (copy from the existing feature module)
-3. Add to `settings.gradle.kts`:
-   ```kotlin
-   include(":features:continuum-feature-another")
-   ```
-4. Add as a dependency in `worker/build.gradle.kts`:
-   ```kotlin
-   implementation(project(":features:continuum-feature-another"))
-   ```
-
-The worker will automatically discover and register all nodes from all feature modules via Spring Boot auto-configuration.
-
----
-
-## Publishing
-
-### Publish to GitHub Packages
-
-```bash
-./gradlew publish
-```
-
-### Build and Push Container Image
-
-```bash
-./gradlew :worker:jib
-```
-
-This builds a container image using [Jib](https://github.com/GoogleContainerTools/jib) (no Docker daemon needed) and pushes to GitHub Container Registry (GHCR).
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-continuum-feature-template/
-├── .github/workflows/build.yml          # CI/CD: build, test, publish, containerize
-├── docker/                              # Local development infrastructure
-│   ├── docker-compose.yml               # Temporal, Kafka, MinIO, API server, message bridge
-│   ├── .env                             # Docker image version pins
-│   ├── temporal/dynamicconfig/          # Temporal dynamic config
-│   └── mosquitto/config/               # MQTT broker config
+continuum-feature-base/
 ├── features/
-│   └── continuum-feature-template/      # Your node implementations
-│       ├── build.gradle.kts             # Depends on continuum-commons
-│       └── src/
-│           ├── main/kotlin/.../
-│           │   ├── AutoConfigure.kt     # Spring Boot auto-configuration
-│           │   └── node/
-│           │       └── ColumnJoinerNodeModel.kt  # Example node
-│           ├── main/resources/
-│           │   ├── META-INF/spring/...  # Auto-config registration
-│           │   └── .../ColumnJoinerNodeModel.doc.md  # Node documentation
-│           └── test/kotlin/.../
-│               └── ColumnJoinerNodeModelTest.kt
-├── worker/                              # Spring Boot worker application
-│   ├── build.gradle.kts                 # Depends on starter + feature modules
+│   └── continuum-feature-analytics/          # 16 analytics nodes
+│       ├── build.gradle.kts                  # Depends on continuum-commons + avro-schemas
+│       └── src/main/kotlin/.../node/
+│           ├── CreateTableNodeModel.kt
+│           ├── ColumnJoinNodeModel.kt
+│           ├── JointNodeModel.kt
+│           ├── JoinOnMultipleKeysNodeModel.kt
+│           ├── PivotColumnsNodeModel.kt
+│           ├── JsonExploderNodeModel.kt
+│           ├── SplitNodeModel.kt
+│           ├── KotlinScriptNodeModel.kt
+│           ├── DynamicRowFilterNodeModel.kt
+│           ├── ConditionalSplitterNodeModel.kt
+│           ├── TimeWindowAggregatorNodeModel.kt
+│           ├── BatchAccumulatorNodeModel.kt
+│           ├── TextNormalizerNodeModel.kt
+│           ├── CryptoHasherNodeModel.kt
+│           ├── AnomalyDetectorZScoreNodeModel.kt
+│           └── RestNodeModel.kt
+├── worker/                                   # Spring Boot worker application
+│   ├── build.gradle.kts                      # Depends on starter + analytics feature
 │   └── src/main/
-│       ├── kotlin/.../App.kt            # Application entry point
-│       └── resources/application.yaml   # Kafka, Temporal, S3 config
-├── settings.gradle.kts                  # Multi-module project settings
-├── gradle.properties                    # Repository names for packages
+│       ├── kotlin/.../App.kt
+│       └── resources/application.yaml
+├── docker/                                   # Local development infrastructure
+│   └── docker-compose.yml
+├── settings.gradle.kts
+├── gradle.properties
 └── README.md
 ```
 
 ---
 
-## Infrastructure Services
+## 🔗 Related Repositories
 
-When you run `docker compose up -d` in the `docker/` directory, these services start:
-
-| Service | Port(s) | Purpose |
-|---------|---------|---------|
-| **Temporal** | 7233 | Workflow orchestration engine |
-| **Temporal UI** | 38081 | Web UI for monitoring workflows |
-| **PostgreSQL** | 35432 | Temporal's persistence backend |
-| **Kafka** (x3) | 39092, 39093, 39094 | Event streaming (3-node KRaft cluster) |
-| **Schema Registry** | 38080 | Kafka schema management |
-| **Kafka UI** | 38082 | Web UI for Kafka topics |
-| **MinIO** | 39000 (API), 39001 (Console) | S3-compatible object storage |
-| **Mosquitto** | 31883 (TCP), 31884 (WS) | MQTT broker |
-| **API Server** | 8080 | Continuum REST API |
-| **Message Bridge** | 8081 | Kafka-to-MQTT event bridge |
+| Repository | Description |
+|-----------|-------------|
+| [Continuum](https://github.com/projectcontinuum/Continuum) | Core backend — API server, worker framework, shared libraries |
+| [continuum-workbench](https://github.com/projectcontinuum/continuum-workbench) | Browser IDE — Eclipse Theia + React Flow workflow editor |
+| **continuum-feature-base** (this repo) | Base analytics nodes — data transforms, REST, scripting, anomaly detection |
+| [continuum-feature-ai](https://github.com/projectcontinuum/continuum-feature-ai) | AI/ML nodes — LLM fine-tuning with Unsloth + LoRA |
+| [continuum-feature-template](https://github.com/projectcontinuum/continuum-feature-template) | Template — scaffold your own custom worker with nodes |
