@@ -272,7 +272,16 @@ services:
       - kafka3
       - mosquitto
     restart: unless-stopped
-
+  continuum-workbench:
+    image:  ghcr.io/projectcontinuum/continuum-workbench/continuum-workbench:0.0.1-snapshot
+    container_name: continuum-workbench
+    ports:
+      - "3002:8080"
+    depends_on:
+      - continuum-api-server
+    networks:
+      - temporal-network
+    restart: unless-stopped
 networks:
   temporal-network:
     driver: bridge
