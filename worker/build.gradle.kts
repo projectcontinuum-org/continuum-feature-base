@@ -7,8 +7,10 @@ plugins {
     id("com.google.cloud.tools.jib") version "3.4.1"
 }
 
-group = "com.continuum.feature.worker.template"
-version = "0.0.1"
+group = "com.continuum.feature.base"
+val baseVersion = "0.0.1"
+val isRelease = System.getenv("IS_RELEASE_BUILD")?.toBoolean() ?: false
+version = if (isRelease) baseVersion else "$baseVersion-SNAPSHOT"
 
 java {
     toolchain {
@@ -42,7 +44,7 @@ dependencies {
     implementation("com.continuum.core:continuum-worker-springboot-starter:0.0.1")
 
     // Feature node modules (local project)
-    implementation(project(":features:continuum-feature-example"))
+    implementation(project(":features:continuum-feature-analytics"))
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
