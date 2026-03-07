@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -39,7 +39,7 @@ class JointNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.JointNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.JointNodeModel", metadata.id)
         assertEquals("Joint the input strings into one", metadata.description)
         assertEquals("Joint Node", metadata.title)
         assertEquals("Joint the input strings", metadata.subTitle)

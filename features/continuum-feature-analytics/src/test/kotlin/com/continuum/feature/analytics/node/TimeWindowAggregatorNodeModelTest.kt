@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -37,7 +37,7 @@ class TimeWindowAggregatorNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.TimeWindowAggregatorNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.TimeWindowAggregatorNodeModel", metadata.id)
         assertEquals("Aggregates values into time windows, summing by window buckets", metadata.description)
         assertEquals("Time Window Aggregator", metadata.title)
         assertEquals("Group and sum by time windows", metadata.subTitle)

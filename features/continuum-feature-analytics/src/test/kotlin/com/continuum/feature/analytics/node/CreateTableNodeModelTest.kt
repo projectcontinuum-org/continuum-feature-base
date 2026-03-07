@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeOutputWriter
@@ -33,7 +33,7 @@ class CreateTableNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.CreateTableNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.CreateTableNodeModel", metadata.id)
         assertEquals("Creates a structured table from FreeMarker template configuration", metadata.description)
         assertEquals("Create Table", metadata.title)
         assertEquals("Generate table rows from template", metadata.subTitle)

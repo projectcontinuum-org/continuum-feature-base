@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -37,7 +37,7 @@ class JsonExploderNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.JsonExploderNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.JsonExploderNodeModel", metadata.id)
         assertEquals("Parses JSON strings and flattens keys into new columns", metadata.description)
         assertEquals("JSON Exploder", metadata.title)
         assertEquals("Parse and flatten JSON", metadata.subTitle)

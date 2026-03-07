@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -36,7 +36,7 @@ class KotlinScriptNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.KotlinScriptNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.KotlinScriptNodeModel", metadata.id)
         assertEquals("Run a Kotlin script for each row, adding script_result column", metadata.description)
         assertEquals("Kotlin Script", metadata.title)
         assertEquals("Evaluate Kotlin script per row", metadata.subTitle)

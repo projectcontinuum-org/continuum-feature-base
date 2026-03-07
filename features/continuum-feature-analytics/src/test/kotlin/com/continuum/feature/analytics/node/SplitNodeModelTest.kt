@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -40,7 +40,7 @@ class SplitNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.SplitNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.SplitNodeModel", metadata.id)
         assertEquals("Split a column into two parts", metadata.description)
         assertEquals("Column Splitter", metadata.title)
         assertEquals("Split a column", metadata.subTitle)

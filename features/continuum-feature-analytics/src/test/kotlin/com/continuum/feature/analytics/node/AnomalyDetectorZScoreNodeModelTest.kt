@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -37,7 +37,7 @@ class AnomalyDetectorZScoreNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.AnomalyDetectorZScoreNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.AnomalyDetectorZScoreNodeModel", metadata.id)
         assertEquals("Detects outliers using Z-score method (flags values with |Z| > 2)", metadata.description)
         assertEquals("Anomaly Detector", metadata.title)
         assertEquals("(Z-Score) outlier detection", metadata.subTitle)

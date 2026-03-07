@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -16,23 +16,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class ConditionalSplitterNodeModelTest {
+class DynamicRowFilterNodeModelTest {
 
-    private lateinit var nodeModel: ConditionalSplitterNodeModel
+    private lateinit var nodeModel: DynamicRowFilterNodeModel
     private lateinit var mockInputReader: NodeInputReader
     private lateinit var mockOutputWriter: NodeOutputWriter
-    private lateinit var mockHighWriter: NodeOutputWriter.OutputPortWriter
-    private lateinit var mockLowWriter: NodeOutputWriter.OutputPortWriter
+    private lateinit var mockPortWriter: NodeOutputWriter.OutputPortWriter
 
     @BeforeEach
     fun setUp() {
-        nodeModel = ConditionalSplitterNodeModel()
+        nodeModel = DynamicRowFilterNodeModel()
         mockInputReader = mock()
         mockOutputWriter = mock()
-        mockHighWriter = mock()
-        mockLowWriter = mock()
-        whenever(mockOutputWriter.createOutputPortWriter("high")).thenReturn(mockHighWriter)
-        whenever(mockOutputWriter.createOutputPortWriter("low")).thenReturn(mockLowWriter)
+        mockPortWriter = mock()
+        whenever(mockOutputWriter.createOutputPortWriter("data")).thenReturn(mockPortWriter)
     }
 
     // ===== Configuration Tests =====
@@ -40,10 +37,10 @@ class ConditionalSplitterNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.ConditionalSplitterNodeModel", metadata.id)
-        assertEquals("Splits rows into two outputs based on threshold comparison", metadata.description)
-        assertEquals("Conditional Splitter", metadata.title)
-        assertEquals("Split by threshold", metadata.subTitle)
+        assertEquals("com.continuum.feature.analytics.node.DynamicRowFilterNodeModel", metadata.id)
+        assertEquals("Filters rows where the specified column value is greater than the threshold", metadata.description)
+        assertEquals("Dynamic Row Filter", metadata.title)
+        assertEquals("Filter rows by threshold", metadata.subTitle)
         assertNotNull(metadata.icon)
         assertTrue(metadata.icon.toString().contains("svg"))
     }
@@ -59,18 +56,16 @@ class ConditionalSplitterNodeModelTest {
     @Test
     fun `test output ports are correctly defined`() {
         val outputPorts = nodeModel.outputPorts
-        assertEquals(2, outputPorts.size)
-        assertNotNull(outputPorts["high"])
-        assertNotNull(outputPorts["low"])
-        assertEquals("high values (>= threshold)", outputPorts["high"]!!.name)
-        assertEquals("low values (< threshold)", outputPorts["low"]!!.name)
+        assertEquals(1, outputPorts.size)
+        assertNotNull(outputPorts["data"])
+        assertEquals("filtered table", outputPorts["data"]!!.name)
     }
 
     @Test
     fun `test categories are correctly defined`() {
         val categories = nodeModel.categories
         assertEquals(1, categories.size)
-        assertEquals("Flow Control", categories[0])
+        assertEquals("Filter & Select", categories[0])
     }
 
     @Test
@@ -85,100 +80,48 @@ class ConditionalSplitterNodeModelTest {
     // ===== Success Tests =====
 
     @Test
-    fun `test execute splits rows correctly with threshold 50`() {
+    fun `test execute filters rows correctly`() {
         // Arrange
         val rows = listOf(
-            mapOf("value" to 100, "name" to "high1"),
-            mapOf("value" to 25, "name" to "low1"),
-            mapOf("value" to 50, "name" to "high2"),
-            mapOf("value" to 49, "name" to "low2"),
-            mapOf("value" to 75, "name" to "high3")
+            mapOf("age" to 35, "name" to "Alice"),
+            mapOf("age" to 25, "name" to "Bob"),
+            mapOf("age" to 40, "name" to "Charlie"),
+            mapOf("age" to 30, "name" to "David"),
+            mapOf("age" to 28, "name" to "Eve")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "age", "threshold" to 30)
         val inputs = mapOf("data" to mockInputReader)
-        val highCaptor = argumentCaptor<Map<String, Any>>()
-        val lowCaptor = argumentCaptor<Map<String, Any>>()
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert
-        verify(mockHighWriter, times(3)).write(any(), highCaptor.capture())
-        verify(mockLowWriter, times(2)).write(any(), lowCaptor.capture())
-
-        // Verify high values
-        assertEquals("high1", highCaptor.allValues[0]["name"])
-        assertEquals("high2", highCaptor.allValues[1]["name"])
-        assertEquals("high3", highCaptor.allValues[2]["name"])
-
-        // Verify low values
-        assertEquals("low1", lowCaptor.allValues[0]["name"])
-        assertEquals("low2", lowCaptor.allValues[1]["name"])
-    }
-
-    @Test
-    fun `test execute with all values above threshold`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("value" to 100),
-            mapOf("value" to 200),
-            mapOf("value" to 150)
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("column" to "value", "threshold" to 50)
-        val inputs = mapOf("data" to mockInputReader)
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockHighWriter, times(3)).write(any(), any())
-        verify(mockLowWriter, org.mockito.kotlin.never()).write(any(), any())
-    }
-
-    @Test
-    fun `test execute with all values below threshold`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("value" to 10),
-            mapOf("value" to 20),
-            mapOf("value" to 30)
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("column" to "value", "threshold" to 50)
-        val inputs = mapOf("data" to mockInputReader)
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockHighWriter, org.mockito.kotlin.never()).write(any(), any())
-        verify(mockLowWriter, times(3)).write(any(), any())
+        // Assert - only Alice(35) and Charlie(40) pass since filter is > 30 (strictly greater)
+        verify(mockPortWriter, times(2)).write(any(), rowCaptor.capture())
+        assertEquals("Alice", rowCaptor.allValues[0]["name"])
+        assertEquals("Charlie", rowCaptor.allValues[1]["name"])
     }
 
     @Test
     fun `test execute with threshold zero`() {
         // Arrange
         val rows = listOf(
+            mapOf("value" to 5),
             mapOf("value" to 0),
-            mapOf("value" to -5),
-            mapOf("value" to 5)
+            mapOf("value" to -5)
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 0)
+        val properties = mapOf("columnName" to "value", "threshold" to 0)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert
-        verify(mockHighWriter, times(2)).write(any(), any()) // 0 and 5
-        verify(mockLowWriter, times(1)).write(any(), any()) // -5
+        // Assert - only value > 0 should pass
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     @Test
@@ -191,40 +134,78 @@ class ConditionalSplitterNodeModelTest {
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to -5)
+        val properties = mapOf("columnName" to "value", "threshold" to -5)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert
-        verify(mockHighWriter, times(2)).write(any(), any()) // -5 and 0
-        verify(mockLowWriter, times(1)).write(any(), any()) // -10
+        // Assert - only values > -5 should pass
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     @Test
     fun `test execute with decimal threshold`() {
         // Arrange
         val rows = listOf(
-            mapOf("value" to 15.5),
-            mapOf("value" to 15.4),
-            mapOf("value" to 15.6)
+            mapOf("value" to 10.5),
+            mapOf("value" to 10.6),
+            mapOf("value" to 10.4)
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 15.5)
+        val properties = mapOf("columnName" to "value", "threshold" to 10.5)
+        val inputs = mapOf("data" to mockInputReader)
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert - only value > 10.5 should pass (10.6)
+        verify(mockPortWriter, times(1)).write(any(), any())
+    }
+
+    @Test
+    fun `test execute with all rows passing filter`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("value" to 100),
+            mapOf("value" to 200),
+            mapOf("value" to 150)
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, times(2)).write(any(), any()) // 15.5 and 15.6
-        verify(mockLowWriter, times(1)).write(any(), any()) // 15.4
+        verify(mockPortWriter, times(3)).write(any(), any())
     }
 
     @Test
-    fun `test execute handles integer column values`() {
+    fun `test execute with no rows passing filter`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("value" to 10),
+            mapOf("value" to 20),
+            mapOf("value" to 30)
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
+        val inputs = mapOf("data" to mockInputReader)
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, org.mockito.kotlin.never()).write(any(), any())
+    }
+
+    @Test
+    fun `test execute handles integer values`() {
         // Arrange
         val rows = listOf(
             mapOf("value" to 100),
@@ -232,19 +213,18 @@ class ConditionalSplitterNodeModelTest {
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 75)
+        val properties = mapOf("columnName" to "value", "threshold" to 75)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, times(1)).write(any(), any())
-        verify(mockLowWriter, times(1)).write(any(), any())
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     @Test
-    fun `test execute handles long column values`() {
+    fun `test execute handles long values`() {
         // Arrange
         val rows = listOf(
             mapOf("value" to 1000L),
@@ -252,15 +232,33 @@ class ConditionalSplitterNodeModelTest {
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 750)
+        val properties = mapOf("columnName" to "value", "threshold" to 750)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, times(1)).write(any(), any())
-        verify(mockLowWriter, times(1)).write(any(), any())
+        verify(mockPortWriter, times(1)).write(any(), any())
+    }
+
+    @Test
+    fun `test execute handles double values`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("value" to 99.9),
+            mapOf("value" to 100.1)
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("columnName" to "value", "threshold" to 100)
+        val inputs = mapOf("data" to mockInputReader)
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     @Test
@@ -272,84 +270,88 @@ class ConditionalSplitterNodeModelTest {
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "missingColumn", "threshold" to 0)
+        val properties = mapOf("columnName" to "missingColumn", "threshold" to -1)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert - all should go to high since 0.0 >= 0
-        verify(mockHighWriter, times(2)).write(any(), any())
-        verify(mockLowWriter, org.mockito.kotlin.never()).write(any(), any())
+        // Assert - 0.0 > -1, so both should pass
+        verify(mockPortWriter, times(2)).write(any(), any())
     }
 
     @Test
     fun `test execute preserves all row data`() {
         // Arrange
         val rows = listOf(
-            mapOf("value" to 100, "name" to "Alice", "age" to 30, "city" to "NYC"),
-            mapOf("value" to 25, "name" to "Bob", "age" to 25, "city" to "LA")
+            mapOf("age" to 35, "name" to "Alice", "city" to "NYC", "salary" to 100000)
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "age", "threshold" to 30)
         val inputs = mapOf("data" to mockInputReader)
-        val highCaptor = argumentCaptor<Map<String, Any>>()
-        val lowCaptor = argumentCaptor<Map<String, Any>>()
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, times(1)).write(any(), highCaptor.capture())
-        verify(mockLowWriter, times(1)).write(any(), lowCaptor.capture())
-
-        // Check high row
-        val highRow = highCaptor.firstValue
-        assertEquals(100, highRow["value"])
-        assertEquals("Alice", highRow["name"])
-        assertEquals(30, highRow["age"])
-        assertEquals("NYC", highRow["city"])
-
-        // Check low row
-        val lowRow = lowCaptor.firstValue
-        assertEquals(25, lowRow["value"])
-        assertEquals("Bob", lowRow["name"])
-        assertEquals(25, lowRow["age"])
-        assertEquals("LA", lowRow["city"])
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        val result = rowCaptor.firstValue
+        assertEquals(35, result["age"])
+        assertEquals("Alice", result["name"])
+        assertEquals("NYC", result["city"])
+        assertEquals(100000, result["salary"])
     }
 
     @Test
-    fun `test execute with row indices are correct`() {
+    fun `test execute with row indices are sequential`() {
         // Arrange
         val rows = listOf(
             mapOf("value" to 100),
             mapOf("value" to 25),
             mapOf("value" to 75),
-            mapOf("value" to 10)
+            mapOf("value" to 10),
+            mapOf("value" to 50)
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "value", "threshold" to 30)
         val inputs = mapOf("data" to mockInputReader)
-        val highIndexCaptor = argumentCaptor<Long>()
-        val lowIndexCaptor = argumentCaptor<Long>()
+        val indexCaptor = argumentCaptor<Long>()
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert
-        verify(mockHighWriter, times(2)).write(highIndexCaptor.capture(), any())
-        verify(mockLowWriter, times(2)).write(lowIndexCaptor.capture(), any())
+        // Assert - values 100, 75, 50 should pass
+        verify(mockPortWriter, times(3)).write(indexCaptor.capture(), any())
+        assertEquals(listOf(0L, 1L, 2L), indexCaptor.allValues)
+    }
 
-        assertEquals(listOf(0L, 1L), highIndexCaptor.allValues)
-        assertEquals(listOf(0L, 1L), lowIndexCaptor.allValues)
+    @Test
+    fun `test execute filters based on strictly greater than`() {
+        // Arrange - value must be > threshold, not >=
+        val rows = listOf(
+            mapOf("value" to 31),
+            mapOf("value" to 30),
+            mapOf("value" to 29)
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("columnName" to "value", "threshold" to 30)
+        val inputs = mapOf("data" to mockInputReader)
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert - only 31 should pass (> 30, not >= 30)
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     // ===== Error Tests =====
 
     @Test
-    fun `test execute throws exception when column is missing`() {
+    fun `test execute throws exception when columnName is missing`() {
         // Arrange
         val properties = mapOf("threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
@@ -358,13 +360,13 @@ class ConditionalSplitterNodeModelTest {
         val exception = assertThrows<NodeRuntimeException> {
             nodeModel.execute(properties, inputs, mockOutputWriter)
         }
-        assertEquals("column is not provided", exception.message)
+        assertEquals("columnName is not provided", exception.message)
     }
 
     @Test
     fun `test execute throws exception when threshold is missing`() {
         // Arrange
-        val properties = mapOf("column" to "value")
+        val properties = mapOf("columnName" to "value")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act & Assert
@@ -377,7 +379,7 @@ class ConditionalSplitterNodeModelTest {
     @Test
     fun `test execute throws exception when threshold is not a number`() {
         // Arrange
-        val properties = mapOf("column" to "value", "threshold" to "not a number")
+        val properties = mapOf("columnName" to "value", "threshold" to "not a number")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act & Assert
@@ -394,15 +396,14 @@ class ConditionalSplitterNodeModelTest {
         // Arrange
         mockSequentialReads(mockInputReader, emptyList())
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, org.mockito.kotlin.never()).write(any(), any())
-        verify(mockLowWriter, org.mockito.kotlin.never()).write(any(), any())
+        verify(mockPortWriter, org.mockito.kotlin.never()).write(any(), any())
     }
 
     @Test
@@ -411,32 +412,30 @@ class ConditionalSplitterNodeModelTest {
         val rows = listOf(mapOf("value" to 100))
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter, times(1)).write(any(), any())
-        verify(mockLowWriter, org.mockito.kotlin.never()).write(any(), any())
+        verify(mockPortWriter, times(1)).write(any(), any())
     }
 
     @Test
-    fun `test execute properly closes writers`() {
+    fun `test execute properly closes writer`() {
         // Arrange
         val rows = listOf(mapOf("value" to 100))
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
         // Assert
-        verify(mockHighWriter).close()
-        verify(mockLowWriter).close()
+        verify(mockPortWriter).close()
     }
 
     @Test
@@ -445,7 +444,7 @@ class ConditionalSplitterNodeModelTest {
         val rows = listOf(mapOf("value" to 100))
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 50)
+        val properties = mapOf("columnName" to "value", "threshold" to 50)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
@@ -456,20 +455,19 @@ class ConditionalSplitterNodeModelTest {
     }
 
     @Test
-    fun `test execute with very large dataset`() {
+    fun `test execute with large dataset`() {
         // Arrange
         val rows = (1..1000).map { mapOf("value" to it) }
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("column" to "value", "threshold" to 500)
+        val properties = mapOf("columnName" to "value", "threshold" to 500)
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
         nodeModel.execute(properties, inputs, mockOutputWriter)
 
-        // Assert
-        verify(mockHighWriter, times(501)).write(any(), any()) // 500-1000 inclusive
-        verify(mockLowWriter, times(499)).write(any(), any()) // 1-499
+        // Assert - values 501-1000 should pass (strictly > 500)
+        verify(mockPortWriter, times(500)).write(any(), any())
     }
 
     // ===== Helper Methods =====

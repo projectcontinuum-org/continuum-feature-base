@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -37,7 +37,7 @@ class BatchAccumulatorNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.BatchAccumulatorNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.BatchAccumulatorNodeModel", metadata.id)
         assertEquals("Groups rows into batches and adds batch_id and row_count columns", metadata.description)
         assertEquals("Batch Accumulator", metadata.title)
         assertEquals("Batch and label rows", metadata.subTitle)

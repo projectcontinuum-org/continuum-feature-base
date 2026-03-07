@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -16,16 +16,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class CryptoHasherNodeModelTest {
+class TextNormalizerNodeModelTest {
 
-    private lateinit var nodeModel: CryptoHasherNodeModel
+    private lateinit var nodeModel: TextNormalizerNodeModel
     private lateinit var mockInputReader: NodeInputReader
     private lateinit var mockOutputWriter: NodeOutputWriter
     private lateinit var mockPortWriter: NodeOutputWriter.OutputPortWriter
 
     @BeforeEach
     fun setUp() {
-        nodeModel = CryptoHasherNodeModel()
+        nodeModel = TextNormalizerNodeModel()
         mockInputReader = mock()
         mockOutputWriter = mock()
         mockPortWriter = mock()
@@ -37,10 +37,10 @@ class CryptoHasherNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.CryptoHasherNodeModel", metadata.id)
-        assertEquals("Generates SHA-256 hash of column values", metadata.description)
-        assertEquals("Crypto Hasher", metadata.title)
-        assertEquals("SHA-256 hashing", metadata.subTitle)
+        assertEquals("com.continuum.feature.analytics.node.TextNormalizerNodeModel", metadata.id)
+        assertEquals("Normalizes text by trimming, lowercasing, and removing non-alphanumeric characters", metadata.description)
+        assertEquals("Text Normalizer", metadata.title)
+        assertEquals("Clean and normalize text", metadata.subTitle)
         assertNotNull(metadata.icon)
         assertTrue(metadata.icon.toString().contains("svg"))
     }
@@ -58,14 +58,14 @@ class CryptoHasherNodeModelTest {
         val outputPorts = nodeModel.outputPorts
         assertEquals(1, outputPorts.size)
         assertNotNull(outputPorts["data"])
-        assertEquals("hashed table", outputPorts["data"]!!.name)
+        assertEquals("normalized table", outputPorts["data"]!!.name)
     }
 
     @Test
     fun `test categories are correctly defined`() {
         val categories = nodeModel.categories
         assertEquals(1, categories.size)
-        assertEquals("Security & Encryption", categories[0])
+        assertEquals("String & Text", categories[0])
     }
 
     @Test
@@ -80,14 +80,14 @@ class CryptoHasherNodeModelTest {
     // ===== Success Tests =====
 
     @Test
-    fun `test execute hashes simple text`() {
+    fun `test execute normalizes simple text`() {
         // Arrange
         val rows = listOf(
-            mapOf("text" to "hello")
+            mapOf("text" to "Hello World")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -96,19 +96,118 @@ class CryptoHasherNodeModelTest {
 
         // Assert
         verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val expectedHash = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-        assertEquals(expectedHash, rowCaptor.firstValue["hash"])
+        assertEquals("hello world", rowCaptor.firstValue["clean"])
     }
 
     @Test
-    fun `test execute hashes empty string`() {
+    fun `test execute removes special characters`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "Hello! @World# \$123%")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("hello world 123", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute trims whitespace`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "   Hello World   ")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("hello world", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute converts to lowercase`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "HELLO WORLD")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("hello world", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute preserves numbers`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "Test123")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("test123", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute preserves spaces between words`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "Hello Beautiful World")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("hello beautiful world", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute handles empty string`() {
         // Arrange
         val rows = listOf(
             mapOf("text" to "")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -117,21 +216,80 @@ class CryptoHasherNodeModelTest {
 
         // Assert
         verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val expectedHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        assertEquals(expectedHash, rowCaptor.firstValue["hash"])
+        assertEquals("", rowCaptor.firstValue["clean"])
     }
 
     @Test
-    fun `test execute hashes multiple rows`() {
+    fun `test execute handles only special characters`() {
         // Arrange
         val rows = listOf(
-            mapOf("text" to "hello"),
-            mapOf("text" to "world"),
-            mapOf("text" to "test")
+            mapOf("text" to "!@#\$%^&*()")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute handles only whitespace`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "     ")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute handles missing input column`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("otherColumn" to "value")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "missingColumn", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute normalizes multiple rows`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "Hello!"),
+            mapOf("text" to "World?"),
+            mapOf("text" to "Test123!")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -140,26 +298,20 @@ class CryptoHasherNodeModelTest {
 
         // Assert
         verify(mockPortWriter, times(3)).write(any(), rowCaptor.capture())
-        assertEquals(3, rowCaptor.allValues.size)
-
-        val hash1 = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-        val hash2 = "486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7"
-        val hash3 = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-
-        assertEquals(hash1, rowCaptor.allValues[0]["hash"])
-        assertEquals(hash2, rowCaptor.allValues[1]["hash"])
-        assertEquals(hash3, rowCaptor.allValues[2]["hash"])
+        assertEquals("hello", rowCaptor.allValues[0]["clean"])
+        assertEquals("world", rowCaptor.allValues[1]["clean"])
+        assertEquals("test123", rowCaptor.allValues[2]["clean"])
     }
 
     @Test
     fun `test execute preserves original columns`() {
         // Arrange
         val rows = listOf(
-            mapOf("text" to "hello", "id" to 1, "name" to "Alice")
+            mapOf("text" to "Hello!", "id" to 1, "name" to "Alice")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -169,42 +321,21 @@ class CryptoHasherNodeModelTest {
         // Assert
         verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
         val result = rowCaptor.firstValue
-        assertEquals("hello", result["text"])
+        assertEquals("Hello!", result["text"])
         assertEquals(1, result["id"])
         assertEquals("Alice", result["name"])
-        assertNotNull(result["hash"])
+        assertEquals("hello", result["clean"])
     }
 
     @Test
-    fun `test execute with missing input column defaults to empty string`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("otherColumn" to "value")
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("inputCol" to "missingColumn", "outputCol" to "hash")
-        val inputs = mapOf("data" to mockInputReader)
-        val rowCaptor = argumentCaptor<Map<String, Any>>()
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val expectedHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" // hash of empty string
-        assertEquals(expectedHash, rowCaptor.firstValue["hash"])
-    }
-
-    @Test
-    fun `test execute converts numbers to strings before hashing`() {
+    fun `test execute handles numbers in input column`() {
         // Arrange
         val rows = listOf(
             mapOf("text" to 12345)
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -213,96 +344,7 @@ class CryptoHasherNodeModelTest {
 
         // Assert
         verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val expectedHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"
-        assertEquals(expectedHash, rowCaptor.firstValue["hash"])
-    }
-
-    @Test
-    fun `test execute with special characters`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("text" to "!@#\$%^&*()")
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
-        val inputs = mapOf("data" to mockInputReader)
-        val rowCaptor = argumentCaptor<Map<String, Any>>()
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val result = rowCaptor.firstValue["hash"] as String
-        assertTrue(result.length == 64) // SHA-256 produces 64 hex characters
-        assertTrue(result.matches(Regex("[a-f0-9]{64}")))
-    }
-
-    @Test
-    fun `test execute with unicode characters`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("text" to "你好世界")
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
-        val inputs = mapOf("data" to mockInputReader)
-        val rowCaptor = argumentCaptor<Map<String, Any>>()
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val result = rowCaptor.firstValue["hash"] as String
-        assertTrue(result.length == 64)
-        assertTrue(result.matches(Regex("[a-f0-9]{64}")))
-    }
-
-    @Test
-    fun `test execute produces lowercase hex output`() {
-        // Arrange
-        val rows = listOf(
-            mapOf("text" to "ABC")
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
-        val inputs = mapOf("data" to mockInputReader)
-        val rowCaptor = argumentCaptor<Map<String, Any>>()
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val hash = rowCaptor.firstValue["hash"] as String
-        assertEquals(hash, hash.lowercase())
-    }
-
-    @Test
-    fun `test execute hash consistency for same input`() {
-        // Arrange - same text should produce same hash
-        val rows = listOf(
-            mapOf("text" to "test"),
-            mapOf("text" to "test")
-        )
-        mockSequentialReads(mockInputReader, rows)
-
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
-        val inputs = mapOf("data" to mockInputReader)
-        val rowCaptor = argumentCaptor<Map<String, Any>>()
-
-        // Act
-        nodeModel.execute(properties, inputs, mockOutputWriter)
-
-        // Assert
-        verify(mockPortWriter, times(2)).write(any(), rowCaptor.capture())
-        val hash1 = rowCaptor.allValues[0]["hash"]
-        val hash2 = rowCaptor.allValues[1]["hash"]
-        assertEquals(hash1, hash2)
+        assertEquals("12345", rowCaptor.firstValue["clean"])
     }
 
     @Test
@@ -315,7 +357,7 @@ class CryptoHasherNodeModelTest {
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val indexCaptor = argumentCaptor<Long>()
 
@@ -328,15 +370,14 @@ class CryptoHasherNodeModelTest {
     }
 
     @Test
-    fun `test execute with long text`() {
+    fun `test execute handles accented characters`() {
         // Arrange
-        val longText = "a".repeat(10000)
         val rows = listOf(
-            mapOf("text" to longText)
+            mapOf("text" to "Café")
         )
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
         val rowCaptor = argumentCaptor<Map<String, Any>>()
 
@@ -345,8 +386,28 @@ class CryptoHasherNodeModelTest {
 
         // Assert
         verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
-        val hash = rowCaptor.firstValue["hash"] as String
-        assertTrue(hash.length == 64)
+        // Accented characters should be removed (not alphanumeric)
+        assertEquals("caf", rowCaptor.firstValue["clean"])
+    }
+
+    @Test
+    fun `test execute with mixed case and punctuation`() {
+        // Arrange
+        val rows = listOf(
+            mapOf("text" to "The Quick BROWN Fox!!! Jumps Over...the Lazy DOG??")
+        )
+        mockSequentialReads(mockInputReader, rows)
+
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
+        val inputs = mapOf("data" to mockInputReader)
+        val rowCaptor = argumentCaptor<Map<String, Any>>()
+
+        // Act
+        nodeModel.execute(properties, inputs, mockOutputWriter)
+
+        // Assert
+        verify(mockPortWriter, times(1)).write(any(), rowCaptor.capture())
+        assertEquals("the quick brown fox jumps overthe lazy dog", rowCaptor.firstValue["clean"])
     }
 
     // ===== Error Tests =====
@@ -354,7 +415,7 @@ class CryptoHasherNodeModelTest {
     @Test
     fun `test execute throws exception when inputCol is missing`() {
         // Arrange
-        val properties = mapOf("outputCol" to "hash")
+        val properties = mapOf("outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act & Assert
@@ -384,7 +445,7 @@ class CryptoHasherNodeModelTest {
         // Arrange
         mockSequentialReads(mockInputReader, emptyList())
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
@@ -400,7 +461,7 @@ class CryptoHasherNodeModelTest {
         val rows = listOf(mapOf("text" to "test"))
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
@@ -416,7 +477,7 @@ class CryptoHasherNodeModelTest {
         val rows = listOf(mapOf("text" to "test"))
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act
@@ -429,10 +490,10 @@ class CryptoHasherNodeModelTest {
     @Test
     fun `test execute with large dataset`() {
         // Arrange
-        val rows = (1..100).map { mapOf("text" to "value$it") }
+        val rows = (1..100).map { mapOf("text" to "Value$it!") }
         mockSequentialReads(mockInputReader, rows)
 
-        val properties = mapOf("inputCol" to "text", "outputCol" to "hash")
+        val properties = mapOf("inputCol" to "text", "outputCol" to "clean")
         val inputs = mapOf("data" to mockInputReader)
 
         // Act

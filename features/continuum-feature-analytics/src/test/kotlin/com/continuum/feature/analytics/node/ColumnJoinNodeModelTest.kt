@@ -1,4 +1,4 @@
-package com.continuum.base.node
+package com.continuum.feature.analytics.node
 
 import com.continuum.core.commons.exception.NodeRuntimeException
 import com.continuum.core.commons.utils.NodeInputReader
@@ -39,7 +39,7 @@ class ColumnJoinNodeModelTest {
     @Test
     fun `test node metadata is properly configured`() {
         val metadata = nodeModel.metadata
-        assertEquals("com.continuum.base.node.ColumnJoinNodeModel", metadata.id)
+        assertEquals("com.continuum.feature.analytics.node.ColumnJoinNodeModel", metadata.id)
         assertEquals("Joins two columns from left and right tables into one output column", metadata.description)
         assertEquals("Column Join Node", metadata.title)
         assertEquals("Join columns from two tables", metadata.subTitle)
