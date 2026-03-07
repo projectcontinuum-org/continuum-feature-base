@@ -23,8 +23,8 @@ repositories {
         name = "ContinuumGitHubPackages"
         url = uri("https://maven.pkg.github.com/projectcontinuum/continuum")
         credentials {
-            username = System.getenv("GITHUB_USER") ?: ""
-            password = System.getenv("GITHUB_TOKEN") ?: ""
+            username = System.getenv("MAVEN_REPO_USERNAME") ?: System.getenv("GITHUB_USER") ?: ""
+            password = System.getenv("MAVEN_REPO_PASSWORD") ?: System.getenv("GITHUB_TOKEN") ?: ""
         }
     }
 }
