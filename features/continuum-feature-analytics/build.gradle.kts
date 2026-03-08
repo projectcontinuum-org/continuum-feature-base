@@ -17,6 +17,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven("https://packages.confluent.io/maven/")
     maven {
@@ -45,7 +46,6 @@ dependencies {
 
     // Project dependencies
     implementation("com.continuum.core:continuum-commons:0.0.1")
-    implementation("com.continuum.core:continuum-avro-schemas:0.0.1")
 
     // Jackson dependencies
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
