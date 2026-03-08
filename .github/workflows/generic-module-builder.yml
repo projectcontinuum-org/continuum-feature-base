@@ -75,7 +75,5 @@ jobs:
           IS_RELEASE_BUILD: ${{ inputs.release }}
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_REPO_USERNAME: ${{ github.actor }}
-          DOCKER_REPO_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          DOCKER_REPO_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_REPO_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
