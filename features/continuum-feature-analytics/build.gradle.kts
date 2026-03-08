@@ -10,6 +10,9 @@ val baseVersion = property("featureVersion").toString()
 val isRelease = System.getenv("IS_RELEASE_BUILD")?.toBoolean() ?: false
 version = if (isRelease) baseVersion else "$baseVersion-SNAPSHOT"
 
+// get continuum platform version from root project properties
+val continuumPlatformVersion = property("continuumPlatformVersion").toString()
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -45,7 +48,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
 
     // Project dependencies
-    implementation("com.continuum.core:continuum-commons:0.0.1")
+    implementation("com.continuum.core:continuum-commons:$continuumPlatformVersion")
 
     // Jackson dependencies
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
