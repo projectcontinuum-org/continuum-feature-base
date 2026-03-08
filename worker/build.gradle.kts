@@ -109,6 +109,16 @@ jib {
             password = System.getenv("DOCKER_REPO_PASSWORD") ?: ""
         }
     }
+
+    // publish to docker-hub
+    to {
+        image = "docker.io/${(System.getenv("DOCKER_HUB_USERNAME")}/${project.name.lowercase()}:${project.version}"
+        auth {
+            username = System.getenv("DOCKER_HUB_USERNAME") ?: ""
+            password = System.getenv("DOCKER_HUB_PASSWORD") ?: ""
+        }
+    }
+
     from {
         image = "eclipse-temurin:21-jre"
     }
