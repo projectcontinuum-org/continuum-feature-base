@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.continuum.feature.base"
-val baseVersion = "0.0.1"
+val baseVersion = property("featureVersion").toString()
 val isRelease = System.getenv("IS_RELEASE_BUILD")?.toBoolean() ?: false
 version = if (isRelease) baseVersion else "$baseVersion-SNAPSHOT"
 
