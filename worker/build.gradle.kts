@@ -112,7 +112,7 @@ jib {
 
     // publish to docker-hub
     to {
-        image = "docker.io/${(System.getenv("DOCKER_HUB_USERNAME")}/${project.name.lowercase()}:${project.version}"
+        image = "docker.io/${System.getenv("DOCKER_HUB_USERNAME")}/${project.name.lowercase()}:${project.version}"
         auth {
             username = System.getenv("DOCKER_HUB_USERNAME") ?: ""
             password = System.getenv("DOCKER_HUB_PASSWORD") ?: ""
