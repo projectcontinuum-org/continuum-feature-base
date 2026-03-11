@@ -7,6 +7,7 @@ plugins {
 }
 
 group = "org.projectcontinuum.feature.analytics"
+description = "Continuum Feature Analytics - A feature for collecting and analyzing feature usage data in the Continuum platform."
 val baseVersion = property("featureVersion").toString()
 val isRelease = System.getenv("IS_RELEASE_BUILD")?.toBoolean() ?: false
 version = if (isRelease) baseVersion else "$baseVersion-SNAPSHOT"
