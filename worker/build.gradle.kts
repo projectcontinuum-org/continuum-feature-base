@@ -25,14 +25,6 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven("https://packages.confluent.io/maven/")
-    maven {
-        name = "ContinuumGitHubPackages"
-        url = uri("https://maven.pkg.github.com/projectcontinuum/continuum")
-        credentials {
-            username = System.getenv("MAVEN_REPO_USERNAME") ?: System.getenv("GITHUB_USER") ?: ""
-            password = System.getenv("MAVEN_REPO_PASSWORD") ?: System.getenv("GITHUB_TOKEN") ?: ""
-        }
-    }
 }
 
 dependencies {
