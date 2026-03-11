@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.25"
     id("io.spring.dependency-management") version "1.1.6"
     `maven-publish`
+    id("org.jreleaser")
 }
 
 group = "org.projectcontinuum.feature.analytics"
@@ -17,6 +18,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
@@ -97,28 +100,74 @@ tasks.withType<Test> {
 }
 
 publishing {
-    val repoName = System.getenv("GITHUB_REPOSITORY") ?: property("repoName").toString()
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            group = project.group
-            description = project.description
-            version = project.version.toString()
-            pom {
-                name.set(project.name)
-                description.set(project.description)
-                url.set("https://github.com/$repoName")
-            }
+  val repoName = System.getenv("GITHUB_REPOSITORY") ?: property("repoName").toString()
+  publications {
+    create<MavenPublication>("mavenJava") {
+      from(components["java"])
+      group = project.group
+      description = project.description
+      version = project.version.toString()
+      pom {
+        name.set(project.name)
+        description.set(project.description)
+        url.set("https://github.com/$repoName")
+        licenses {
+          license {
+            name.set("The Apache License, Version 2.0")
+            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+          }
         }
-    }
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/$repoName")
-            credentials {
-                username = System.getenv("MAVEN_REPO_USERNAME")
-                password = System.getenv("MAVEN_REPO_PASSWORD")
-            }
+        developers {
+          developer {
+            id.set("continuum-developer")
+            name.set("Continuum Developer")
+            email.set("projectdevcontinuum@gmail.com")
+          }
         }
+        scm {
+          connection.set("scm:git:git://github.com/$repoName.git")
+          developerConnection.set("scm:git:ssh://github.com/$repoName.git")
+          url.set("https://github.com/$repoName")
+        }
+      }
     }
+  }
+
+  repositories {
+    maven {
+      name = "localStaging"
+      url = uri(layout.buildDirectory.dir("staging-deploy"))
+    }
+    if (version.toString().endsWith("-SNAPSHOT")) {
+      maven {
+        name = "SonatypeSnapshots"
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        credentials {
+          username = System.getenv("MAVEN_REPO_USERNAME") ?: ""
+          password = System.getenv("MAVEN_REPO_PASSWORD") ?: ""
+        }
+      }
+    }
+  }
+}
+
+jreleaser {
+  signing {
+    active.set(org.jreleaser.model.Active.ALWAYS)
+    armored.set(true)
+  }
+  deploy {
+    maven {
+      mavenCentral {
+        create("sonatype") {
+          active.set(org.jreleaser.model.Active.ALWAYS)
+          url.set("https://central.sonatype.com/api/v1/publisher")
+          stagingRepository("build/staging-deploy")
+          skipPublicationCheck.set(false)
+          retryDelay.set(0)
+          maxRetries.set(0)
+        }
+      }
+    }
+  }
 }
