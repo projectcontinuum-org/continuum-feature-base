@@ -1,4 +1,4 @@
-package com.continuum.feature.base.worker
+package org.projectcontinuum.feature.base.worker
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
