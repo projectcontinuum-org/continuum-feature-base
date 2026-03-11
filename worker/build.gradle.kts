@@ -66,33 +66,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-publishing {
-    val repoName = System.getenv("GITHUB_REPOSITORY") ?: property("repoName").toString()
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            group = project.group
-            description = project.description
-            version = project.version.toString()
-            pom {
-                name.set(project.name)
-                description.set(project.description)
-                url.set("https://github.com/$repoName")
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/$repoName")
-            credentials {
-                username = System.getenv("MAVEN_REPO_USERNAME") ?: System.getenv("GITHUB_USER") ?: ""
-                password = System.getenv("MAVEN_REPO_PASSWORD") ?: System.getenv("GITHUB_TOKEN") ?: ""
-            }
-        }
-    }
-}
-
 jib {
     from {
         image = "eclipse-temurin:21-jre"
