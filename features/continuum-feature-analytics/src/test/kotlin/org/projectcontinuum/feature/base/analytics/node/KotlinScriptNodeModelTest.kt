@@ -41,7 +41,7 @@ class KotlinScriptNodeModelTest {
         assertEquals("Run a Kotlin script for each row, adding script_result column", metadata.description)
         assertEquals("Kotlin Script", metadata.title)
         assertEquals("Evaluate Kotlin script per row", metadata.subTitle)
-        assertEquals("Transform", nodeModel.categories[0])
+        assertEquals("Transform/Scripting", nodeModel.categories[0])
     }
 
     @Test
