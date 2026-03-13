@@ -35,7 +35,7 @@ class KotlinScriptNodeModel : ProcessNodeModel() {
     )
   )
 
-  override val categories = listOf("Transform")
+  override val categories = listOf("Transform/Scripting")
 
   val propertiesSchema: Map<String, Any> = objectMapper.readValue(
     """
