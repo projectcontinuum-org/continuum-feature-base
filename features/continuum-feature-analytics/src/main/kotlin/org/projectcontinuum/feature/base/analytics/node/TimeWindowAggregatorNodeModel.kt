@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -79,7 +79,7 @@ import java.time.temporal.ChronoUnit
  * @see ProcessNodeModel
  * @see LocalDateTime
  */
-@Component
+@ContinuumNode
 class TimeWindowAggregatorNodeModel : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(TimeWindowAggregatorNodeModel::class.java)

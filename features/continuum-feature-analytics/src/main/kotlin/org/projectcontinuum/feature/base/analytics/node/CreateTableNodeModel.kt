@@ -13,11 +13,11 @@ import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import java.io.StringReader
 import java.io.StringWriter
 
-@Component
+@ContinuumNode
 class CreateTableNodeModel : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(CreateTableNodeModel::class.java)

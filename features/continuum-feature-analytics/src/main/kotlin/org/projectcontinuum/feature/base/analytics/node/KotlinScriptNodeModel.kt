@@ -10,10 +10,10 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import javax.script.ScriptEngineManager
 
-@Component
+@ContinuumNode
 class KotlinScriptNodeModel : ProcessNodeModel() {
 
   companion object {

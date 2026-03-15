@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 
-@Component
+@ContinuumNode
 class JsonExploderNodeModel : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(JsonExploderNodeModel::class.java)

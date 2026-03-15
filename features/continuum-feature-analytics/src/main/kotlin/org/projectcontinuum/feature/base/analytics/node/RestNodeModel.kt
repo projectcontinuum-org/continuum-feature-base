@@ -18,7 +18,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
@@ -29,7 +29,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-@Component
+@ContinuumNode
 class RestNodeModel(
   private val restTemplate: RestTemplate
 ) : ProcessNodeModel() {
@@ -199,6 +199,7 @@ class RestNodeModel(
     nodeOutputWriter: NodeOutputWriter,
     nodeProgressCallback: NodeProgressCallback
   ) {
+    LOGGER.info("Node object id for debugging: ${System.identityHashCode(this)}")
     val method = properties?.get("method") as String? ?: throw NodeRuntimeException(
       workflowId = "",
       nodeId = "",

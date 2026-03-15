@@ -8,11 +8,11 @@ import org.projectcontinuum.core.commons.protocol.progress.NodeProgress
 import org.projectcontinuum.core.commons.protocol.progress.StageStatus
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
-import org.springframework.stereotype.Component
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -59,7 +59,7 @@ import kotlin.math.sqrt
  * @see ProcessNodeModel
  * @author Continuum Workflow
  */
-@Component
+@ContinuumNode
 class AnomalyDetectorZScoreNodeModel : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AnomalyDetectorZScoreNodeModel::class.java)

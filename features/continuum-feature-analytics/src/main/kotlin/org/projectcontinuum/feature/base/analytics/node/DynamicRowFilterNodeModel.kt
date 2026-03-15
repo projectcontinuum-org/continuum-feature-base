@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
-import org.springframework.stereotype.Component
+import org.projectcontinuum.core.commons.annotation.ContinuumNode
 
 /**
  * Dynamic Row Filter Node Model
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component
  * @since 1.0
  * @see ProcessNodeModel
  */
-@Component
+@ContinuumNode
 class DynamicRowFilterNodeModel : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(DynamicRowFilterNodeModel::class.java)
