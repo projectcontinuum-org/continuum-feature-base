@@ -6,6 +6,7 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
+import org.projectcontinuum.core.commons.context.ExecutionContext
 import org.projectcontinuum.core.commons.exception.NodeRuntimeException
 import org.projectcontinuum.core.commons.model.ContinuumWorkflowModel
 import org.projectcontinuum.core.commons.node.ProcessNodeModel
@@ -88,6 +89,19 @@ class RestNodeModel(
               "type": "string",
               "title": "Payload Template",
               "description": "FreeMarker template for request body (e.g., {\"name\": \"${'$'}{row.name}\"})"
+            },
+            "authType": {
+              "type": "string",
+              "title": "Authentication Type",
+              "description": "Type of authentication to use",
+              "enum": ["None", "Basic", "Token"],
+              "enumNames": ["None", "Basic Authentication", "Bearer Token"],
+              "default": "None"
+            },
+            "credential": {
+              "type": "string",
+              "title": "Credential",
+              "description": "ID of the stored credential to use for authentication"
             }
           },
           "required": ["method", "url"]
@@ -99,38 +113,88 @@ class RestNodeModel(
   val propertiesUiSchema: Map<String, Any> = objectMapper.readValue(
     """
         {
-          "type": "VerticalLayout",
+          "type": "Categorization",
           "elements": [
             {
-              "type": "Control",
-              "scope": "#/properties/method"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/url",
-              "options": {
-                "format": "code",
-                "language": "freemarker2",
-                "rows": 1
-              }
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/payload",
-              "options": {
-                "format": "code",
-                "language": "freemarker2",
-                "rows": 10
-              },
-              "rule": {
-                "effect": "HIDE",
-                "condition": {
-                  "scope": "#/properties/method",
-                  "schema": {
-                    "enum": ["GET", "DELETE"]
+              "type": "Category",
+              "label": "Request",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/method"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/url",
+                  "options": {
+                    "format": "code",
+                    "language": "freemarker2",
+                    "rows": 1
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/payload",
+                  "options": {
+                    "format": "code",
+                    "language": "freemarker2",
+                    "rows": 10
+                  },
+                  "rule": {
+                    "effect": "HIDE",
+                    "condition": {
+                      "scope": "#/properties/method",
+                      "schema": {
+                        "enum": ["GET", "DELETE"]
+                      }
+                    }
                   }
                 }
-              }
+              ]
+            },
+            {
+              "type": "Category",
+              "label": "Authentication",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/authType"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/credential",
+                  "options": {
+                    "format": "credential",
+                    "credentialType": "GENERIC"
+                  },
+                  "rule": {
+                    "effect": "SHOW",
+                    "condition": {
+                      "scope": "#/properties/authType",
+                      "schema": {
+                        "const": "Basic"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/credential",
+                  "options": {
+                    "format": "credential",
+                    "credentialType": "GENERIC"
+                  },
+                  "rule": {
+                    "effect": "SHOW",
+                    "condition": {
+                      "scope": "#/properties/authType",
+                      "schema": {
+                        "const": "Token"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }
@@ -154,7 +218,9 @@ class RestNodeModel(
     properties = mapOf(
       "method" to "GET",
       "url" to "https://api.example.com/data?id=${'$'}{row.id}",
-      "payload" to ""
+      "payload" to "",
+      "authType" to "None",
+      "credential" to ""
     ),
     propertiesSchema = propertiesSchema,
     propertiesUISchema = propertiesUiSchema
@@ -196,7 +262,8 @@ class RestNodeModel(
     properties: Map<String, Any>?,
     inputs: Map<String, NodeInputReader>,
     nodeOutputWriter: NodeOutputWriter,
-    nodeProgressCallback: NodeProgressCallback
+    nodeProgressCallback: NodeProgressCallback,
+    executionContext: ExecutionContext
   ) {
     LOGGER.info("Node object id for debugging: ${System.identityHashCode(this)}")
     val method = properties?.get("method") as String? ?: throw NodeRuntimeException(
@@ -212,7 +279,7 @@ class RestNodeModel(
     val payloadTemplate = properties["payload"] as String? ?: ""
 
     var lastProgressReportTime = System.currentTimeMillis()
-
+    val credential = executionContext.credentials["credential"]  // Example of how to access resolved credentials if needed
     LOGGER.info("REST Node: method=$method, urlTemplate=$urlTemplate")
     val totalRowCount = inputs["data"]?.getRowCount()
     nodeOutputWriter.createOutputPortWriter("data").use { writer ->
@@ -238,6 +305,15 @@ class RestNodeModel(
             // Build request headers
             val headers = HttpHeaders().apply {
               set("Content-Type", "application/json")
+            }
+
+            // Add authentication headers if applicable
+            val authType = properties["authType"] as String?
+            val credential = properties["credential"] as String?
+            if (authType != null && authType != "None" && !credential.isNullOrEmpty()) {
+              // TODO: Resolve credential from credential store using credential ID
+              // For now, just log that authentication is configured
+              LOGGER.debug("Authentication configured: type=$authType, credentialId=$credential")
             }
 
             // Build request entity with payload (if applicable)
