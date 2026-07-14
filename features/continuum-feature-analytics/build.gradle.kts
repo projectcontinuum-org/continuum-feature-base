@@ -1,5 +1,5 @@
 plugins {
-    id("org.projectcontinuum.feature") version "0.0.10"
+    id("org.projectcontinuum.feature") version "0.0.12"
 }
 
 group = "org.projectcontinuum.feature.analytics"
@@ -8,7 +8,7 @@ version = property("featureVersion").toString()
 
 // get continuum platform version from root project properties
 val continuumPlatformVersion = property("continuumPlatformVersion").toString()
-val kotlinScriptingVersion = "2.1.0"
+val kotlinScriptingVersion = "2.2.21"
 
 continuum {
     continuumVersion.set(continuumPlatformVersion)

@@ -6,19 +6,20 @@ import org.projectcontinuum.core.commons.node.ProcessNodeModel
 import org.projectcontinuum.core.commons.protocol.progress.NodeProgressCallback
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.exc.StreamReadException
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
 
 @ContinuumNode
-class JsonExploderNodeModel : ProcessNodeModel() {
+class JsonExploderNodeModel(
+  private val objectMapper: ObjectMapper
+) : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(JsonExploderNodeModel::class.java)
-    private val objectMapper = ObjectMapper()
   }
 
   final override val inputPorts = mapOf(
@@ -140,7 +141,7 @@ class JsonExploderNodeModel : ProcessNodeModel() {
           } catch (e: Exception) {
             LOGGER.error("Failed to parse JSON in row $rowNumber: ${e.message}")
             throw NodeRuntimeException(
-              isRetriable = !(e is JsonParseException || e is JsonMappingException),
+              isRetriable = !(e is StreamReadException || e is DatabindException),
               workflowId = "",
               nodeId = "",
               message = "Failed to parse JSON in row $rowNumber: ${e.message}"

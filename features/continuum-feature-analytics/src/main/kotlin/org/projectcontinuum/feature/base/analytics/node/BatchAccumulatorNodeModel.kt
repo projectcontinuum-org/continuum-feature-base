@@ -6,8 +6,8 @@ import org.projectcontinuum.core.commons.node.ProcessNodeModel
 import org.projectcontinuum.core.commons.protocol.progress.NodeProgressCallback
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
@@ -53,10 +53,11 @@ import org.projectcontinuum.core.commons.annotation.ContinuumNode
  * @author Continuum Workflow
  */
 @ContinuumNode
-class BatchAccumulatorNodeModel : ProcessNodeModel() {
+class BatchAccumulatorNodeModel(
+  private val objectMapper: ObjectMapper
+) : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(BatchAccumulatorNodeModel::class.java)
-    private val objectMapper = ObjectMapper()
   }
 
   final override val inputPorts = mapOf(

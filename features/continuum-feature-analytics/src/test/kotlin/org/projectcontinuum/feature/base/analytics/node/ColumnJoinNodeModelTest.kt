@@ -13,6 +13,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -27,7 +28,7 @@ class ColumnJoinNodeModelTest {
 
     @BeforeEach
     fun setUp() {
-        nodeModel = ColumnJoinNodeModel()
+        nodeModel = ColumnJoinNodeModel(jacksonObjectMapper())
         mockLeftReader = mock()
         mockRightReader = mock()
         mockOutputWriter = mock()

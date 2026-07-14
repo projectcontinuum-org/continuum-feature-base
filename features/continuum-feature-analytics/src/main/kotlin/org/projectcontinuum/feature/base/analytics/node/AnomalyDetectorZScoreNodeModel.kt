@@ -9,8 +9,8 @@ import org.projectcontinuum.core.commons.protocol.progress.StageStatus
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import kotlin.math.abs
@@ -60,10 +60,11 @@ import kotlin.math.sqrt
  * @author Continuum Workflow
  */
 @ContinuumNode
-class AnomalyDetectorZScoreNodeModel : ProcessNodeModel() {
+class AnomalyDetectorZScoreNodeModel(
+  private val objectMapper: ObjectMapper
+) : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AnomalyDetectorZScoreNodeModel::class.java)
-    private val objectMapper = ObjectMapper()
     private const val Z_THRESHOLD = 2.0
 
     // Stage names for progress reporting

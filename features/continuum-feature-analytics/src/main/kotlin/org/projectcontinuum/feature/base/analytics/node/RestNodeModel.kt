@@ -1,7 +1,5 @@
 package org.projectcontinuum.feature.base.analytics.node
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
@@ -14,15 +12,15 @@ import org.projectcontinuum.core.commons.protocol.progress.NodeProgressCallback
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.RestClient
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import java.io.StringReader
 import java.io.StringWriter
 import java.net.ConnectException
@@ -31,11 +29,11 @@ import java.net.UnknownHostException
 
 @ContinuumNode
 class RestNodeModel(
-  private val restTemplate: RestTemplate
+  private val restClient: RestClient,
+  private val objectMapper: ObjectMapper
 ) : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(RestNodeModel::class.java)
-    private val objectMapper = ObjectMapper()
 
     private val freemarkerConfig = Configuration(Configuration.VERSION_2_3_32).apply {
       defaultEncoding = "UTF-8"
@@ -302,11 +300,6 @@ class RestNodeModel(
 
             LOGGER.debug("Making $method request to: $url")
 
-            // Build request headers
-            val headers = HttpHeaders().apply {
-              set("Content-Type", "application/json")
-            }
-
             // Add authentication headers if applicable
             val authType = properties["authType"] as String?
             val credential = properties["credential"] as String?
@@ -314,13 +307,6 @@ class RestNodeModel(
               // TODO: Resolve credential from credential store using credential ID
               // For now, just log that authentication is configured
               LOGGER.debug("Authentication configured: type=$authType, credentialId=$credential")
-            }
-
-            // Build request entity with payload (if applicable)
-            val requestEntity = if (payload.isNotEmpty() && method.uppercase() in listOf("POST", "PUT")) {
-              HttpEntity(payload, headers)
-            } else {
-              HttpEntity<String>(headers)
             }
 
             // Convert method string to HttpMethod enum
@@ -336,18 +322,23 @@ class RestNodeModel(
               )
             }
 
-            // Execute request
-            val response: ResponseEntity<String> = restTemplate.exchange(
-              url,
-              httpMethod,
-              requestEntity,
-              String::class.java
-            )
+            // Execute request via RestClient (fluent API)
+            val requestSpec = restClient.method(httpMethod)
+              .uri(url)
+              .headers { it.set("Content-Type", "application/json") }
+
+            val response: ResponseEntity<String> = if (
+              payload.isNotEmpty() && method.uppercase() in listOf("POST", "PUT")
+            ) {
+              requestSpec.body(payload).retrieve().toEntity(String::class.java)
+            } else {
+              requestSpec.retrieve().toEntity(String::class.java)
+            }
 
             // Add response to row
             val newRow = row.toMutableMap().apply {
               this["response"] = mapOf(
-                "status" to response.statusCodeValue,
+                "status" to response.statusCode.value(),
                 "body" to response.body
               )
             }

@@ -6,18 +6,19 @@ import org.projectcontinuum.core.commons.node.ProcessNodeModel
 import org.projectcontinuum.core.commons.protocol.progress.NodeProgressCallback
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
 import java.io.File
 
 @ContinuumNode
-class SplitNodeModel : ProcessNodeModel() {
+class SplitNodeModel(
+  private val objectMapper: ObjectMapper
+) : ProcessNodeModel() {
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(SplitNodeModel::class.java)
-    private val objectMapper = jacksonObjectMapper()
   }
 
   final override val inputPorts = mapOf(

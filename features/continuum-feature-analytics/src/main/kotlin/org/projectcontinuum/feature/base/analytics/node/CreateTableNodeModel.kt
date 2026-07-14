@@ -6,8 +6,8 @@ import org.projectcontinuum.core.commons.node.ProcessNodeModel
 import org.projectcontinuum.core.commons.protocol.progress.NodeProgressCallback
 import org.projectcontinuum.core.commons.utils.NodeInputReader
 import org.projectcontinuum.core.commons.utils.NodeOutputWriter
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
@@ -18,10 +18,11 @@ import java.io.StringReader
 import java.io.StringWriter
 
 @ContinuumNode
-class CreateTableNodeModel : ProcessNodeModel() {
+class CreateTableNodeModel(
+  private val objectMapper: ObjectMapper
+) : ProcessNodeModel() {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(CreateTableNodeModel::class.java)
-    private val objectMapper = ObjectMapper()
     private val freemarkerConfig = Configuration(Configuration.VERSION_2_3_32).apply {
       defaultEncoding = "UTF-8"
       templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
