@@ -1,5 +1,5 @@
 plugins {
-    id("org.projectcontinuum.worker") version "0.0.12"
+    id("org.projectcontinuum.worker")
 }
 
 group = "org.projectcontinuum.feature.base"

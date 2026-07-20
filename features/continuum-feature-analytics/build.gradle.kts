@@ -1,5 +1,5 @@
 plugins {
-    id("org.projectcontinuum.feature") version "0.0.12"
+    id("org.projectcontinuum.feature")
 }
 
 group = "org.projectcontinuum.feature.analytics"
