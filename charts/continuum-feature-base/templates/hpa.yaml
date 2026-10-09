@@ -1,0 +1,26 @@
+{{- if and .Values.continuum.featureBase.enabled .Values.continuum.featureBase.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "continuum-feature-base.fullname" . }}
+  labels:
+    {{- include "continuum-feature-base.componentLabels" (dict "context" $ "component" "feature-base" "extra" .Values.continuum.featureBase.labels.hpa) | nindent 4 }}
+  {{- with (include "continuum-feature-base.componentAnnotations" (dict "context" $ "extra" .Values.continuum.featureBase.annotations.hpa)) }}
+  annotations:
+    {{- nindent 4 . }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "continuum-feature-base.fullname" . }}
+  minReplicas: {{ .Values.continuum.featureBase.autoscaling.minReplicas | default 1 }}
+  maxReplicas: {{ .Values.continuum.featureBase.autoscaling.maxReplicas | default 5 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.continuum.featureBase.autoscaling.targetCPUUtilizationPercentage | default 75 }}
+{{- end }}

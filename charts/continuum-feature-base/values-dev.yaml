@@ -1,0 +1,25 @@
+# ============================================================
+# Development overrides for continuum-feature-base
+# Usage: helm install continuum-feature-base ./charts/continuum-feature-base -f charts/continuum-feature-base/values-dev.yaml -n continuum-dev --create-namespace
+# ============================================================
+
+global:
+  imagePullPolicy: Always
+
+continuum:
+  secrets:
+    minio:
+      rootUser: "dev-minio-root"
+      rootPassword: "dev-minio-secret"
+
+  featureBase:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    autoscaling:
+      enabled: false
