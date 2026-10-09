@@ -277,7 +277,7 @@ class RestNodeModel(
     val payloadTemplate = properties["payload"] as String? ?: ""
 
     var lastProgressReportTime = System.currentTimeMillis()
-    val credential = executionContext.credentials["credential"]  // Example of how to access resolved credentials if needed
+    val credential: Map<String, Any> = executionContext.getCredential("credential")  // Example of how to access a credential if needed
     LOGGER.info("REST Node: method=$method, urlTemplate=$urlTemplate")
     val totalRowCount = inputs["data"]?.getRowCount()
     nodeOutputWriter.createOutputPortWriter("data").use { writer ->

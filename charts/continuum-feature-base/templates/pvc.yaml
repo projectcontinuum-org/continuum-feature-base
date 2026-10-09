@@ -1,0 +1,21 @@
+{{- if .Values.continuum.featureBase.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "continuum-feature-base.fullname" . }}-cache
+  labels:
+    {{- include "continuum-feature-base.componentLabels" (dict "context" $ "component" "feature-base" "extra" .Values.continuum.featureBase.labels.pvc) | nindent 4 }}
+  {{- with (include "continuum-feature-base.componentAnnotations" (dict "context" $ "extra" .Values.continuum.featureBase.annotations.pvc)) }}
+  annotations:
+    {{- nindent 4 . }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.continuum.cacheStorage.accessMode | default "ReadWriteOnce" }}
+  {{- if .Values.continuum.cacheStorage.storageClassName }}
+  storageClassName: {{ .Values.continuum.cacheStorage.storageClassName | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.continuum.cacheStorage.size | default "5Gi" }}
+{{- end }}
