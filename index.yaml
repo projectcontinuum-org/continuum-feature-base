@@ -5,6 +5,26 @@ entries:
       continuum.io/requires: continuum-infra >= 0.1.0, continuum-platform >= 0.1.0
     apiVersion: v2
     appVersion: 0.0.8
+    created: "2026-10-09T12:15:16.233316617Z"
+    description: Project Continuum feature worker — generic Temporal worker for base
+      feature nodes
+    digest: baa908999f28349578269581fa455a1c8661d3c27d0c3fa19db6490a566c4689
+    home: https://github.com/projectcontinuum
+    keywords:
+    - continuum
+    - workflow
+    - feature-worker
+    maintainers:
+    - name: Project Continuum
+    name: continuum-feature-base
+    type: application
+    urls:
+    - https://github.com/projectcontinuum-org/continuum-feature-base/releases/download/continuum-feature-base-0.1.1/continuum-feature-base-0.1.1.tgz
+    version: 0.1.1
+  - annotations:
+      continuum.io/requires: continuum-infra >= 0.1.0, continuum-platform >= 0.1.0
+    apiVersion: v2
+    appVersion: 0.0.8
     created: "2026-10-09T06:11:22.599018613Z"
     description: Project Continuum feature worker — generic Temporal worker for base
       feature nodes
@@ -21,4 +41,4 @@ entries:
     urls:
     - https://github.com/projectcontinuum-org/continuum-feature-base/releases/download/continuum-feature-base-0.1.0/continuum-feature-base-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T06:11:22.599021908Z"
+generated: "2026-10-09T12:15:16.233324258Z"
