@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> Full ecosystem blueprint: see the [Continuum repo CLAUDE.md](https://github.com/projectcontinuum/Continuum/blob/main/CLAUDE.md) for the complete architecture reference.
+> Full ecosystem blueprint: see the [Continuum repo CLAUDE.md](https://github.com/projectcontinuum-org/continuum-platform-core/blob/main/CLAUDE.md) for the complete architecture reference.
 
 ## This Repo
 
