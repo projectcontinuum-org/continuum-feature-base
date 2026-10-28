@@ -49,7 +49,7 @@ A standalone Gradle project containing **16 production-ready workflow nodes** fo
 
 ## 📦 Dependencies
 
-This worker depends on shared libraries published from the [Continuum](https://github.com/projectcontinuum-org/continuum-platform-core) monorepo via GitHub Packages:
+This worker depends on shared libraries published from the [Continuum](https://github.com/projectcontinuum-org/continuum-platform-core) monorepo from Maven Central:
 
 | Dependency | Purpose |
 |-----------|---------|
@@ -67,14 +67,6 @@ Additional infrastructure libraries: Kafka + Confluent Avro, Temporal SDK, AWS S
 
 - **JDK 21** — [Eclipse Temurin](https://adoptium.net/) recommended
 - **Docker & Docker Compose** — For local infrastructure
-- **GitHub PAT** with `read:packages` scope
-
-Set environment variables:
-
-```bash
-export GITHUB_USERNAME=your-github-username
-export GITHUB_TOKEN=ghp_your-personal-access-token
-```
 
 ### Run
 
@@ -140,3 +132,7 @@ continuum-feature-base/
 | **continuum-feature-base** (this repo) | Base analytics nodes — data transforms, REST, scripting, anomaly detection |
 | [continuum-feature-ai](https://github.com/projectcontinuum-org/continuum-feature-ai) | AI/ML nodes — LLM fine-tuning with Unsloth + LoRA |
 | [continuum-feature-template](https://github.com/projectcontinuum-org/continuum-feature-template) | Template — scaffold your own custom worker with nodes |
+
+## 📄 License
+
+[Apache 2.0](LICENSE)

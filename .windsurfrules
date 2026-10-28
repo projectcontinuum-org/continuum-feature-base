@@ -34,7 +34,7 @@ All in `features/continuum-feature-analytics/src/main/kotlin/com/continuum/featu
 | `AnomalyDetectorZScoreNodeModel` | Anomaly Detector | Analysis & Statistics |
 | `RestNodeModel` | REST Client | Integration & API |
 
-## Dependencies (from GitHub Packages)
+## Dependencies (from Maven Central)
 
 `continuum-commons:0.0.1`, `continuum-avro-schemas:0.0.1`, `continuum-worker-springboot-starter:0.0.1`
 

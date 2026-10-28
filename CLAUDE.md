@@ -12,7 +12,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - JDK 21
 - Docker & Docker Compose
-- GitHub PAT with `read:packages` scope set as `GITHUB_USERNAME` and `GITHUB_TOKEN` env vars (for GitHub Packages dependencies)
 
 ## Commands
 
@@ -41,9 +40,9 @@ cd docker && docker compose up -d
 ### Module Dependency Chain
 
 ```
-worker  →  features:continuum-feature-analytics  →  continuum-commons (GitHub Packages)
-                                                  →  continuum-avro-schemas (GitHub Packages)
-worker  →  continuum-worker-springboot-starter (GitHub Packages)
+worker  →  features:continuum-feature-analytics  →  continuum-commons
+                                                  →  continuum-avro-schemas
+worker  →  continuum-worker-springboot-starter
 ```
 
 The `worker` module is a thin Spring Boot shell (`App.kt` + `application.yml`). It has no node logic — it exists solely to pull in the analytics feature and let `continuum-worker-springboot-starter` auto-discover and register all nodes with Temporal.
