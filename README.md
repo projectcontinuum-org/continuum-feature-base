@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Continuum Feature Base</h1>
-  <strong>Core analytics and data processing nodes for <a href="https://github.com/projectcontinuum/Continuum">Project Continuum</a></strong>
+  <strong>Core analytics and data processing nodes for <a href="https://github.com/projectcontinuum-org/continuum-platform-core">Project Continuum</a></strong>
 </div>
 
 <div align="center">
@@ -14,7 +14,7 @@
 
 ## 🌐 Part of Project Continuum
 
-This is the **base analytics feature repository** for [Project Continuum](https://github.com/projectcontinuum/Continuum) — a distributed, crash-proof workflow execution platform. It provides the foundational set of data processing nodes used in most workflows.
+This is the **base analytics feature repository** for [Project Continuum](https://github.com/projectcontinuum-org/continuum-platform-core) — a distributed, crash-proof workflow execution platform. It provides the foundational set of data processing nodes used in most workflows.
 
 ---
 
@@ -49,7 +49,7 @@ A standalone Gradle project containing **16 production-ready workflow nodes** fo
 
 ## 📦 Dependencies
 
-This worker depends on shared libraries published from the [Continuum](https://github.com/projectcontinuum/Continuum) monorepo via GitHub Packages:
+This worker depends on shared libraries published from the [Continuum](https://github.com/projectcontinuum-org/continuum-platform-core) monorepo via GitHub Packages:
 
 | Dependency | Purpose |
 |-----------|---------|
@@ -135,8 +135,8 @@ continuum-feature-base/
 
 | Repository | Description |
 |-----------|-------------|
-| [Continuum](https://github.com/projectcontinuum/Continuum) | Core backend — API server, worker framework, shared libraries |
-| [continuum-workbench](https://github.com/projectcontinuum/continuum-workbench) | Browser IDE — Eclipse Theia + React Flow workflow editor |
+| [Continuum](https://github.com/projectcontinuum-org/continuum-platform-core) | Core backend — API server, worker framework, shared libraries |
+| [continuum-workbench](https://github.com/projectcontinuum-org/continuum-workbench) | Browser IDE — Eclipse Theia + React Flow workflow editor |
 | **continuum-feature-base** (this repo) | Base analytics nodes — data transforms, REST, scripting, anomaly detection |
-| [continuum-feature-ai](https://github.com/projectcontinuum/continuum-feature-ai) | AI/ML nodes — LLM fine-tuning with Unsloth + LoRA |
-| [continuum-feature-template](https://github.com/projectcontinuum/continuum-feature-template) | Template — scaffold your own custom worker with nodes |
+| [continuum-feature-ai](https://github.com/projectcontinuum-org/continuum-feature-ai) | AI/ML nodes — LLM fine-tuning with Unsloth + LoRA |
+| [continuum-feature-template](https://github.com/projectcontinuum-org/continuum-feature-template) | Template — scaffold your own custom worker with nodes |
