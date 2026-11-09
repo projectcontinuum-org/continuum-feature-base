@@ -2,8 +2,8 @@ apiVersion: v2
 name: continuum-feature-base
 description: Project Continuum feature worker — generic Temporal worker for base feature nodes
 type: application
-version: 0.1.2
-appVersion: "0.0.8"
+version: 0.1.3
+appVersion: "0.0.9"
 keywords:
   - continuum
   - workflow
