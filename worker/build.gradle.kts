@@ -11,6 +11,11 @@ val continuumPlatformVersion = property("continuumPlatformVersion").toString()
 
 continuum {
     continuumVersion.set(continuumPlatformVersion)
+    // Base image with the Claude Code CLI, shell tools and python3 (built from docker/agent-worker-base).
+    // Override with -PworkerBaseImage=... for local builds.
+    jibFromImage.set("eclipse-temurin:21-jre")
+    // Container image pushed by `./gradlew :worker:jib` (see .github/workflows/on-release.yml)
+    jibToImage.set("projectcontinuum/continuum-feature-base:${project.version}")
 }
 
 dependencies {
