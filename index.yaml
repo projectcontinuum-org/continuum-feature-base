@@ -1,0 +1,24 @@
+apiVersion: v1
+entries:
+  continuum-feature-base:
+  - annotations:
+      continuum.io/requires: continuum-infra >= 0.1.0, continuum-platform >= 0.1.0
+    apiVersion: v2
+    appVersion: 0.0.9
+    created: "2026-11-12T05:11:27.797068095Z"
+    description: Project Continuum feature worker — generic Temporal worker for base
+      feature nodes
+    digest: 6a0c9813590e8f47640e2cde6e1f859eca4e815b233a1125b1933b3a4e239c7b
+    home: https://github.com/projectcontinuum-org
+    keywords:
+    - continuum
+    - workflow
+    - feature-worker
+    maintainers:
+    - name: Project Continuum
+    name: continuum-feature-base
+    type: application
+    urls:
+    - https://github.com/projectcontinuum-org/continuum-feature-base/releases/download/release/v0.0.9/continuum-feature-base-0.1.3.tgz
+    version: 0.1.3
+generated: "2026-11-12T05:11:27.795903246Z"
