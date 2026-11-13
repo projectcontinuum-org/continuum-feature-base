@@ -1,6 +1,9 @@
 package org.projectcontinuum.feature.base.analytics.node
 
+import freemarker.core.TemplateClassResolver
+import freemarker.ext.beans.BeansWrapper
 import freemarker.template.Configuration
+import freemarker.template.DefaultObjectWrapperBuilder
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
@@ -42,6 +45,13 @@ class RestNodeModel(
       wrapUncheckedExceptions = true
       fallbackOnNullLoopVariable = false
       numberFormat = "computer"  // Outputs: 1000, 100, not 1,000, 1,00
+      // User-authored templates: no ?new (e.g. freemarker.template.utility.Execute), no ?api, and only
+      // bean properties (no arbitrary Java method calls such as getClass()) on wrapped objects
+      newBuiltinClassResolver = TemplateClassResolver.ALLOWS_NOTHING_RESOLVER
+      isAPIBuiltinEnabled = false
+      objectWrapper = DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_32).apply {
+        exposureLevel = BeansWrapper.EXPOSE_PROPERTIES_ONLY
+      }.build()
     }
 
     // Progress reporting interval in milliseconds (report every 5 seconds)
