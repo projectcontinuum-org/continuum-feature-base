@@ -408,6 +408,20 @@ class CreateTableNodeModelTest {
     }
 
     @Test
+    fun `test execute rejects new builtin in template`() {
+        val properties = mapOf(
+            "jsonArrayString" to """<#assign ex="freemarker.template.utility.Execute"?new()>[{"out": "${'$'}{ex("id")}"}]"""
+        )
+
+        val exception = assertThrows<NodeRuntimeException> {
+            nodeModel.execute(properties, emptyMap(), mockOutputWriter)
+        }
+        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+        assertTrue(exception.message!!.contains("Template rendering failed"))
+        verify(mockPortWriter, never()).write(any(), any())
+    }
+
+    @Test
     fun `test execute throws exception on invalid JSON`() {
         // Arrange
         val properties = mapOf(
